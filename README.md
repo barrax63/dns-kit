@@ -43,6 +43,14 @@ docker compose up -d
 > - `WEBSERVER_PASSWORD` - Set a strong password for Pi-hole admin interface
 > - `TZ` - Your timezone (e.g., `Europe/Berlin`, `America/New_York`)
 
+#### Update custom regex filters
+
+Open the shell and execute the following command to apply the custom regex filters once:
+
+```bash
+docker exec dns-kit-pihole-1 bash /custom-cont-init.d/01-configure-blocklists.sh
+```
+
 ## ⚡️ Quick start and usage
 
 The Pi-hole DNS Kit is built around a Docker Compose file that's pre-configured with network isolation, security hardening, and persistent storage.

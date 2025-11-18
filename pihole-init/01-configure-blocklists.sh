@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 #==============================================================================
 # Pi-hole Regex List Importer
@@ -61,24 +61,33 @@ while IFS= read -r regex_pattern; do
     # Clean the pattern (remove leading/trailing whitespace)
     regex_pattern=$(echo "$regex_pattern" | xargs)
     
-    # Check if regex already exists
-    EXISTS=$(sqlite3 "$GRAVITY_DB" "SELECT COUNT(*) FROM domainlist WHERE type = 3 AND domain = '$regex_pattern';" 2>/dev/null || echo "0")
+    # Check if regex already exists using printf to avoid SQL injection
+    EXISTS=$(sqlite3 "$GRAVITY_DB" <<EOF
+SELECT COUNT(*) FROM domainlist WHERE type = 3 AND domain = '$(printf '%s' "$regex_pattern" | sed "s/'/''/g")';
+EOF
+)
     
     if [ "$EXISTS" -gt 0 ]; then
         SKIPPED=$((SKIPPED + 1))
         continue
     fi
     
-    # Insert regex into database
-    # type = 3 (regex blocklist)
-    # enabled = 1 (active)
-    # comment = source attribution
-    if sqlite3 "$GRAVITY_DB" "INSERT INTO domainlist (type, domain, enabled, comment) VALUES (3, '$regex_pattern', 1, 'mmotti/pihole-regex');" 2>/dev/null; then
+    # Insert regex into database using proper escaping
+    # We'll use a temp SQL file to avoid shell escaping issues
+    cat > /tmp/insert_regex.sql <<EOF
+INSERT INTO domainlist (type, domain, enabled, comment) 
+VALUES (3, '$(printf '%s' "$regex_pattern" | sed "s/'/''/g")', 1, 'mmotti/pihole-regex');
+EOF
+    
+    if sqlite3 "$GRAVITY_DB" < /tmp/insert_regex.sql 2>/dev/null; then
         IMPORTED=$((IMPORTED + 1))
     else
         FAILED=$((FAILED + 1))
         echo "[!] Failed to import: $regex_pattern"
     fi
+    
+    rm -f /tmp/insert_regex.sql
+    
 done < "$TEMP_FILE"
 
 # Clean up
