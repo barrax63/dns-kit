@@ -2,7 +2,6 @@ name: dns-kit
 
 volumes:
   pihole_storage:
-  dnscrypt-proxy_cache:
 
 networks:
   main:
@@ -37,13 +36,13 @@ services:
       - CHOWN
       - SETGID
       - SETUID
-      - DAC_OVERRIDE
     env_file:
       - path: .env
         required: true
     volumes:
       - ./dnscrypt-proxy.toml:/config/dnscrypt-proxy.toml:ro
-      - dnscrypt-proxy_cache:/var/cache/dnscrypt-proxy
+    tmpfs:
+      - /var/cache/dnscrypt-proxy:size=10M,mode=1777
     deploy:
       resources:
         limits:
