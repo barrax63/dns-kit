@@ -87,14 +87,4 @@ echo "    - Skipped:  $SKIPPED existing patterns"
 echo "    - Failed:   $FAILED patterns"
 echo ""
 
-# Reload Pi-hole to apply changes
-if [ "$IMPORTED" -gt 0 ]; then
-    echo "[i] Reloading Pi-hole to apply changes..."
-    pihole reloadlists
-    echo "[✓] Pi-hole reloaded"
-else
-    echo "[i] No new patterns imported, reload not needed"
-fi
-
-echo ""
 echo "[✓] All done!"
