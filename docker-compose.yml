@@ -87,6 +87,7 @@ services:
       - FOWNER
       - SETGID
       - SETUID
+      - SYS_PTRACE
     depends_on:
       dnscrypt-proxy:
         condition: service_started
