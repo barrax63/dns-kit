@@ -82,6 +82,11 @@ services:
       - SYS_NICE
       - CHOWN
       - SYS_TIME
+      - SETFCAP
+      - DAC_OVERRIDE
+      - FOWNER
+      - SETGID
+      - SETUID
     depends_on:
       dnscrypt-proxy:
         condition: service_started
