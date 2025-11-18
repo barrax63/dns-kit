@@ -38,7 +38,7 @@ services:
     volumes:
       - ./dnscrypt-proxy.toml:/config/dnscrypt-proxy.toml:ro
     healthcheck:
-      test: ["CMD", "sh", "-c", "drill -p 5053 cloudflare.com @127.0.0.1 || nc -z 127.0.0.1 5053"]
+      test: ["CMD-SHELL", "timeout 5 sh -c 'echo > /dev/tcp/127.0.0.1/5053' || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 3
