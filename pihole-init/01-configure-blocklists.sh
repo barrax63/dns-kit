@@ -3,6 +3,7 @@
 #==============================================================================
 # Pi-hole Regex List Importer
 # Automatically imports regex blocklists from mmotti/pihole-regex
+# Uses pihole CLI and direct database access
 #==============================================================================
 
 set -e
@@ -46,7 +47,7 @@ TOTAL_REGEX=$(wc -l < "$TEMP_FILE")
 echo "[✓] Downloaded $TOTAL_REGEX regex patterns"
 echo ""
 
-# Import regex patterns into Pi-hole database
+# Import regex patterns using pihole CLI
 echo "[i] Importing regex patterns into Pi-hole..."
 IMPORTED=0
 SKIPPED=0
@@ -61,32 +62,18 @@ while IFS= read -r regex_pattern; do
     # Clean the pattern (remove leading/trailing whitespace)
     regex_pattern=$(echo "$regex_pattern" | xargs)
     
-    # Check if regex already exists using printf to avoid SQL injection
-    EXISTS=$(sqlite3 "$GRAVITY_DB" <<EOF
-SELECT COUNT(*) FROM domainlist WHERE type = 3 AND domain = '$(printf '%s' "$regex_pattern" | sed "s/'/''/g")';
-EOF
-)
+    # Use pihole CLI to add regex (it handles escaping automatically)
+    # Capture output to check if already exists
+    OUTPUT=$(pihole --regex "$regex_pattern" --comment "mmotti/pihole-regex" 2>&1)
     
-    if [ "$EXISTS" -gt 0 ]; then
+    if echo "$OUTPUT" | grep -q "already exists"; then
         SKIPPED=$((SKIPPED + 1))
-        continue
-    fi
-    
-    # Insert regex into database using proper escaping
-    # We'll use a temp SQL file to avoid shell escaping issues
-    cat > /tmp/insert_regex.sql <<EOF
-INSERT INTO domainlist (type, domain, enabled, comment) 
-VALUES (3, '$(printf '%s' "$regex_pattern" | sed "s/'/''/g")', 1, 'mmotti/pihole-regex');
-EOF
-    
-    if sqlite3 "$GRAVITY_DB" < /tmp/insert_regex.sql 2>/dev/null; then
+    elif echo "$OUTPUT" | grep -q -E "(Added|Success)"; then
         IMPORTED=$((IMPORTED + 1))
     else
         FAILED=$((FAILED + 1))
         echo "[!] Failed to import: $regex_pattern"
     fi
-    
-    rm -f /tmp/insert_regex.sql
     
 done < "$TEMP_FILE"
 
@@ -103,7 +90,7 @@ echo ""
 # Reload Pi-hole to apply changes
 if [ "$IMPORTED" -gt 0 ]; then
     echo "[i] Reloading Pi-hole to apply changes..."
-    pihole restartdns reload-lists
+    pihole reloadlists
     echo "[✓] Pi-hole reloaded"
 else
     echo "[i] No new patterns imported, reload not needed"
