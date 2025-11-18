@@ -2,6 +2,7 @@ name: dns-kit
 
 volumes:
   pihole_storage:
+  dnscrypt-proxy_cache:
 
 networks:
   main:
@@ -37,12 +38,7 @@ services:
         required: true
     volumes:
       - ./dnscrypt-proxy.toml:/config/dnscrypt-proxy.toml:ro
-    healthcheck:
-      test: ["CMD-SHELL", "timeout 5 sh -c 'echo > /dev/tcp/127.0.0.1/5053' || exit 1"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 10s
+      - dnscrypt-proxy_cache:/var/cache/dnscrypt-proxy
     deploy:
       resources:
         limits:
@@ -84,7 +80,7 @@ services:
       - SYS_TIME
     depends_on:
       dnscrypt-proxy:
-        condition: service_healthy
+        condition: service_started
     deploy:
       resources:
         limits:
