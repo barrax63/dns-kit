@@ -33,6 +33,10 @@ services:
     restart: unless-stopped
     environment:
       - TZ=${TZ}
+    cap_add:
+      - CHOWN
+      - SETGID
+      - SETUID
     env_file:
       - path: .env
         required: true
