@@ -61,18 +61,14 @@ services:
     ports:
       - "53:53/tcp"
       - "53:53/udp"
-      - "80:80/tcp"
       - "443:443/tcp"
     environment:
       - TZ=${TZ}
       - FTLCONF_webserver_api_password=${WEBSERVER_PASSWORD}
       - FTLCONF_dns_domainNeeded=${FTLCONF_dns_domainNeeded}
       - FTLCONF_dns_expandHosts=${FTLCONF_dns_expandHosts}
-      - FTLCONF_dns_hosts=${FTLCONF_dns_hosts}
-      - FTLCONF_dns_revServers=${FTLCONF_dns_revServers}
       - FTLCONF_ntp_sync_server=${FTLCONF_ntp_sync_server}
-#      uncomment only if you have a valid SSL certificate
-#      - FTLCONF_webserver_tls_cert=${FTLCONF_webserver_tls_cert}
+      - FTLCONF_webserver_tls_cert=${FTLCONF_webserver_tls_cert}
       - FTLCONF_dns_listeningMode=ALL
       - FTLCONF_dns_upstreams=dnscrypt-proxy#5053
     env_file:

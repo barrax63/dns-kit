@@ -42,6 +42,7 @@ docker compose up -d
 > Make sure to update the following variables in your `.env` file:
 > - `WEBSERVER_PASSWORD` - Set a strong password for Pi-hole admin interface
 > - `TZ` - Your timezone (e.g., `Europe/Berlin`, `America/New_York`)
+> - Place a valid certificate file in the `shared` folder and update `FTLCONF_webserver_tls_cert` if needed
 
 #### Update custom regex filters
 
@@ -57,7 +58,7 @@ The Pi-hole DNS Kit is built around a Docker Compose file that's pre-configured 
 
 After completing the installation steps above, access the Pi-hole admin interface:
 
-- **Local Access**: <http://localhost/admin> or <http://YOUR_SERVER_IP/admin>
+- **Local Access**: <https://localhost/admin> or <https://YOUR_SERVER_IP/admin>
 
 ### First-time Setup
 
