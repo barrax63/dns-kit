@@ -3,13 +3,6 @@ name: dns-kit
 volumes:
   pihole_storage:
 
-networks:
-  main:
-    driver: bridge
-    ipam:
-      config:
-        - subnet: 10.254.2.0/24
-
 x-logging: &default-logging
   driver: "json-file"
   options:
@@ -26,8 +19,8 @@ services:
   dnscrypt-proxy:
     <<: *security-baseline
     image: klutchell/dnscrypt-proxy:latest
-    networks: ['main']
     hostname: dnscrypt-proxy
+    network_mode: host
     restart: unless-stopped
     environment:
       - TZ=${TZ}
@@ -55,8 +48,8 @@ services:
   pihole:
     <<: *security-baseline
     image: pihole/pihole:latest
-    networks: ['main']
     hostname: pihole
+    network_mode: host
     restart: unless-stopped
     ports:
       - "53:53/tcp"
@@ -70,7 +63,7 @@ services:
       - FTLCONF_ntp_sync_server=${FTLCONF_ntp_sync_server}
       - FTLCONF_webserver_tls_cert=${FTLCONF_webserver_tls_cert}
       - FTLCONF_dns_listeningMode=ALL
-      - FTLCONF_dns_upstreams=dnscrypt-proxy#5053
+      - FTLCONF_dns_upstreams=127.0.0.1#5053
     env_file:
       - path: .env
         required: true
