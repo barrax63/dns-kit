@@ -1,0 +1,96 @@
+name: dns-kit
+
+volumes:
+  pihole_storage:
+
+networks:
+  main:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 10.254.2.0/24
+
+x-logging: &default-logging
+  driver: "json-file"
+  options:
+    max-size: "10m"
+    max-file: "5"
+
+x-security-baseline: &security-baseline
+  security_opt:
+    - no-new-privileges:true
+    - apparmor=docker-default
+  cap_drop:
+    - ALL
+
+services:
+  dnscrypt-proxy:
+    <<: *security-baseline
+    image: klutchell/dnscrypt-proxy:latest
+    networks: ['main']
+    hostname: dnscrypt-proxy
+    restart: unless-stopped
+    environment:
+      - TZ=${TZ}
+    env_file:
+      - path: .env
+        required: true
+    volumes:
+      - ./dnscrypt-proxy.toml:/config/dnscrypt-proxy.toml:ro
+    healthcheck:
+      test: ["CMD", "sh", "-c", "drill -p 5053 cloudflare.com @127.0.0.1 || nc -z 127.0.0.1 5053"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 128M
+    logging: *default-logging
+
+  pihole:
+    <<: *security-baseline
+    image: pihole/pihole:latest
+    networks: ['main']
+    hostname: pihole
+    restart: unless-stopped
+    ports:
+      - "53:53/tcp"
+      - "53:53/udp"
+      - "80:80/tcp"
+      - "443:443/tcp"
+    environment:
+      - TZ=${TZ}
+      - FTLCONF_webserver_api_password=${WEBSERVER_PASSWORD}
+      - FTLCONF_dns_listeningMode=ALL
+      - FTLCONF_dns_upstreams=dnscrypt-proxy#5053
+    env_file:
+      - path: .env
+        required: true
+    volumes:
+      - pihole_storage:/etc/pihole
+      - ./pihole-init:/custom-cont-init.d:ro
+    cap_add:
+      - NET_BIND_SERVICE
+      - NET_RAW
+      - NET_ADMIN
+      - SYS_NICE
+      - CHOWN
+      - SYS_TIME
+    depends_on:
+      dnscrypt-proxy:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 2G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+    logging: *default-logging

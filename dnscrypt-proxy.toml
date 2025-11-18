@@ -1,0 +1,128 @@
+##############################################
+#        dnscrypt-proxy configuration       #
+#     Optimized for Pi-hole integration     #
+##############################################
+
+##################################
+# Global settings                #
+##################################
+
+# List of servers to use
+# Using Cloudflare security servers as per documented config
+server_names = ['cloudflare-security', 'cloudflare-security-ipv6']
+
+# Listen addresses for Docker container
+# Listen on all interfaces within the container (0.0.0.0 and ::)
+# No ports are exposed to host - only accessible via Docker network
+listen_addresses = ['0.0.0.0:5053', '[::]:5053']
+
+# Maximum number of simultaneous client connections to accept
+max_clients = 250
+
+##################################
+# IPv4/IPv6 settings             #
+##################################
+
+# Use servers reachable over IPv4
+ipv4_servers = true
+
+# Use servers reachable over IPv6
+ipv6_servers = true
+
+# Use servers implementing the DNSCrypt protocol
+dnscrypt_servers = true
+
+# Use servers implementing the DNS-over-HTTPS protocol
+doh_servers = true
+
+# Use servers implementing the Oblivious DoH protocol
+odoh_servers = false
+
+##################################
+# Filters                        #
+##################################
+
+# Server must support DNS security extensions (DNSSEC)
+require_dnssec = false
+
+# Server must not log user queries
+require_nolog = true
+
+# Server must not enforce its own blocklist
+require_nofilter = true
+
+# Disable TLS session tickets - increases privacy
+tls_disable_session_tickets = true
+
+##################################
+# Caching                        #
+##################################
+
+# Disable caching in dnscrypt-proxy since Pi-hole handles caching
+# This prevents double caching and ensures Pi-hole stats are accurate
+cache = false
+
+##################################
+# Networking                     #
+##################################
+
+# Enable HTTP/3 (QUIC) for DoH servers that support it
+# Provides better performance and privacy
+http3 = true
+
+# How long a DNS query will wait for a response, in milliseconds
+timeout = 5000
+
+# Keepalive for HTTP (HTTPS, HTTP/2, HTTP/3) queries, in seconds
+keepalive = 30
+
+##################################
+# Fallback resolvers             #
+##################################
+
+# Fallback resolvers for bootstrapping
+# These are used to resolve the IP addresses of DoH/DoT servers
+fallback_resolvers = ['9.9.9.9:53', '8.8.8.8:53']
+
+# Always use fallback resolver before the system DNS
+ignore_system_dns = true
+
+##################################
+# Maximum response times         #
+##################################
+
+# Maximum time (in seconds) to wait for network connectivity before initializing
+netprobe_timeout = 60
+
+# Delay (in minutes) after which certificates are reloaded
+cert_refresh_delay = 240
+
+##################################
+# Bootstrap resolvers            #
+##################################
+
+# Use the fallback resolver to bootstrap DNSCrypt/DoH resolvers
+bootstrap_resolvers = ['9.9.9.9:53', '8.8.8.8:53']
+
+##################################
+# Sources                        #
+##################################
+
+# Remote lists of available servers
+# The following sources are used by default
+
+[sources]
+  [sources.'public-resolvers']
+    urls = ['https://raw.githubusercontent.com/DNSCrypt/dnscrypt-resolvers/master/v3/public-resolvers.md', 'https://download.dnscrypt.info/resolvers-list/v3/public-resolvers.md']
+    cache_file = '/var/cache/dnscrypt-proxy/public-resolvers.md'
+    minisign_key = 'RWQf6LRCGA9i53mlYecO4IzT51TGPpvWucNSCh1CBM0QTaLn73Y7GFO3'
+    refresh_delay = 72
+    prefix = ''
+
+  [sources.'relays']
+    urls = ['https://raw.githubusercontent.com/DNSCrypt/dnscrypt-resolvers/master/v3/relays.md', 'https://download.dnscrypt.info/resolvers-list/v3/relays.md']
+    cache_file = '/var/cache/dnscrypt-proxy/relays.md'
+    minisign_key = 'RWQf6LRCGA9i53mlYecO4IzT51TGPpvWucNSCh1CBM0QTaLn73Y7GFO3'
+    refresh_delay = 72
+    prefix = ''
+    
