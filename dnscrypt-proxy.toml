@@ -9,12 +9,10 @@
 
 # List of servers to use
 # Using Cloudflare security servers as per documented config
-server_names = ['cloudflare-security']
+server_names = ['cloudflare-security', 'cloudflare-security-ipv6']
 
-# Listen addresses for Docker container
-# Listen on all interfaces within the container (0.0.0.0)
-# No ports are exposed to host - only accessible via Docker network
-listen_addresses = ['0.0.0.0:5053']
+# Listen addresses for Docker container (host mode)
+listen_addresses = ['127.0.0.1:5053', '[::1]:5053']
 
 # Maximum number of simultaneous client connections to accept
 max_clients = 250
@@ -27,7 +25,7 @@ max_clients = 250
 ipv4_servers = true
 
 # Use servers reachable over IPv6
-ipv6_servers = false
+ipv6_servers = true
 
 # Use servers implementing the DNSCrypt protocol
 dnscrypt_servers = true
