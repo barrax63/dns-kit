@@ -40,7 +40,7 @@ docker compose up -d
 
 > [!IMPORTANT]
 > Make sure to update the following variables in your `.env` file:
-> - `WEBSERVER_PASSWORD` - Set a strong password for Pi-hole admin interface
+> - `FTLCONF_webserver_api_password` - Set a strong password for Pi-hole admin interface
 > - `TZ` - Your timezone (e.g., `Europe/Berlin`, `America/New_York`)
 > - Place a valid certificate file in the `shared` folder and update `FTLCONF_webserver_tls_cert` if needed
 
@@ -62,7 +62,7 @@ After completing the installation steps above, access the Pi-hole admin interfac
 
 ### First-time Setup
 
-1. **Log in to Pi-hole**: Use the password you set in `WEBSERVER_PASSWORD`
+1. **Log in to Pi-hole**: Use the password you set in `FTLCONF_webserver_api_password`
 2. **Configure DNS Settings**: 
    - Go to Settings → DNS
    - Verify your upstream DNS servers (dnscrypt-proxy on port 5053)
@@ -91,10 +91,10 @@ Client → Pi-hole (filtering) → DNSCrypt-Proxy (encryption) → Upstream DNS 
 The kit consists of multiple containers with restricted access for enhanced security.
 For more information on how to access the services, please refer to the table below.
 
-| Container          | Version     | Hostname        | Port(s)      | Network accessible?      |
-|--------------------|-------------|-----------------|--------------|------------------------- |
-| `pihole`           | `latest`    | pihole          | 53, 80, 443  | From network             |
-| `dnscrypt-proxy`   | `latest`    | dnscrypt-proxy  | 5053         | From Docker network only |
+| Container        | Version  | Hostname       | Port(s) | Network accessible? |
+|------------------|----------|----------------|---------|---------------------|
+| `pihole`         | `latest` | pihole         | 53, 443 | From network        |
+| `dnscrypt-proxy` | `latest` | dnscrypt-proxy | 5053    | From localhost only |
 
 ## Upgrading
 
