@@ -32,8 +32,8 @@
 #### Standard Setup
 
 ```bash
-git clone <your-repository-url>
-cd <repository-name>
+git clone https://github.com/barrax63/dns-kit.git
+cd dns-kit
 cp .env.example .env # Update the STANDARD CONFIGURATION section inside
 docker compose up -d
 ```
