@@ -35,6 +35,7 @@
 git clone https://github.com/barrax63/dns-kit.git
 cd dns-kit
 cp .env.example .env # Update the STANDARD CONFIGURATION section inside
+docker compose build
 docker compose up -d
 ```
 
@@ -102,6 +103,7 @@ For more information on how to access the services, please refer to the table be
 
 ```bash
 git pull
+docker compose build --no-cache
 docker compose up -d --pull always
 ```
 
@@ -123,7 +125,7 @@ Add this entry:
 
 ```bash
 # Every Sunday at 00:00 run git pull and compose up with latest images
-0 0 * * 0 cd /home/<USER>/dns-kit && /usr/bin/git pull && /usr/bin/docker compose pull && /usr/bin/docker compose up -d >> /home/<USER>/dns-kit/dns-kit-update.log 2>&1
+0 0 * * 0 cd /home/<USER>/dns-kit && /usr/bin/git pull && /usr/bin/docker compose build --no-cache && /usr/bin/docker compose up -d --pull always >> /home/<USER>/dns-kit/dns-kit-update.log 2>&1
 ```
 
 ### Update Pi-hole Gravity (Blocklists)
