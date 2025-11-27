@@ -14,7 +14,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 WORKDIR /build
 
 RUN case "${TARGETARCH}" in \
-        "amd64") echo "linux_amd64" > /tmp/platform ;; \
+        "amd64") echo "linux_x86_64" > /tmp/platform ;; \
         "arm64") echo "linux_arm64" > /tmp/platform ;; \
         "arm")   echo "linux_arm" > /tmp/platform ;; \
         *)       echo "Unsupported: ${TARGETARCH}" && exit 1 ;; \
@@ -31,9 +31,8 @@ RUN PLATFORM=$(cat /tmp/platform) && \
 
 RUN minisign -Vm dnscrypt-proxy.tar.gz -P "$DNSCRYPT_PUBLIC_KEY"
 
-RUN PLATFORM=$(cat /tmp/platform) && \
-    tar -xzf dnscrypt-proxy.tar.gz && \
-    mv ${PLATFORM}/dnscrypt-proxy /build/dnscrypt-proxy && \
+RUN tar -xzf dnscrypt-proxy.tar.gz && \
+    mv */dnscrypt-proxy /build/dnscrypt-proxy && \
     chmod +x /build/dnscrypt-proxy
 
 # =============================================================================
