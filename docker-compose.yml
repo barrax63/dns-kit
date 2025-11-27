@@ -21,6 +21,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+    image: barrax63/dnscrypt-proxy:latest
     network_mode: host
     restart: unless-stopped
     environment:
