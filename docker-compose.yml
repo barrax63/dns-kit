@@ -18,7 +18,9 @@ x-security-baseline: &security-baseline
 services:
   dnscrypt-proxy:
     <<: *security-baseline
-    image: klutchell/dnscrypt-proxy:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
     network_mode: host
     restart: unless-stopped
     environment:
