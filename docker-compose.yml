@@ -49,6 +49,9 @@ services:
     image: pihole/pihole:latest
     network_mode: host
     restart: unless-stopped
+    dns:
+      - 1.1.1.1
+      - 1.0.0.1
     ports:
       - "53:53/tcp"
       - "53:53/udp"
