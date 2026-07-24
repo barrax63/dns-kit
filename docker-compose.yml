@@ -12,13 +12,18 @@ x-logging: &default-logging
 x-security-baseline: &security-baseline
   security_opt:
     - apparmor=docker-default
-    - no-new-privileges:true
   cap_drop:
     - ALL
 
 services:
   dnscrypt-proxy:
     <<: *security-baseline
+    # no-new-privileges is safe here (runs as fixed non-root, needs no caps)
+    # but must NOT be applied to pihole: pihole-FTL relies on file-capability
+    # elevation (setcap) at exec to bind port 53, which no_new_privs blocks.
+    security_opt:
+      - apparmor=docker-default
+      - no-new-privileges:true
     build:
       context: .
       dockerfile: Dockerfile
