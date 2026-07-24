@@ -12,6 +12,7 @@ x-logging: &default-logging
 x-security-baseline: &security-baseline
   security_opt:
     - apparmor=docker-default
+    - no-new-privileges:true
   cap_drop:
     - ALL
 
@@ -24,12 +25,9 @@ services:
     image: barrax63/dnscrypt-proxy:latest
     network_mode: host
     restart: unless-stopped
+    read_only: true
     environment:
       - TZ=${TZ}
-    cap_add:
-      - CHOWN
-      - SETGID
-      - SETUID
     volumes:
       - ./dnscrypt-proxy.toml:/config/dnscrypt-proxy.toml:ro
     tmpfs:
@@ -49,9 +47,6 @@ services:
     image: pihole/pihole:latest
     network_mode: host
     restart: unless-stopped
-    dns:
-      - 1.1.1.1
-      - 1.0.0.1
     ports:
       - "53:53/tcp"
       - "53:53/udp"

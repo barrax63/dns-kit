@@ -32,13 +32,23 @@ RUN case "${TARGETARCH}" in \
     esac
 
 # Download latest release with signature verification
+#
+# NOTE on caching: this RUN instruction always queries the GitHub API for the
+# *latest* release, but Docker's layer cache keys on the instruction text, not
+# on its output. A plain `docker build` / `docker compose build` will keep
+# reusing a previously cached layer even after a newer dnscrypt-proxy release
+# is published upstream. Use `docker compose build --no-cache` (or `--pull`)
+# to force re-resolution of the latest version.
 RUN PLATFORM=$(cat /tmp/platform) && \
     LATEST_URL="https://api.github.com/repos/DNSCrypt/dnscrypt-proxy/releases/latest" && \
-    VERSION=$(curl -sL "$LATEST_URL" | jq -r '.tag_name') && \
-    DOWNLOAD_URL=$(curl -sL "$LATEST_URL" | jq -r ".assets[] | select(.name | contains(\"${PLATFORM}\")) | select(.name | endswith(\".tar.gz\")) | .browser_download_url") && \
+    RELEASE_JSON=$(curl -fsSL --retry 3 --retry-delay 2 "$LATEST_URL") && \
+    VERSION=$(printf '%s' "$RELEASE_JSON" | jq -r '.tag_name') && \
+    DOWNLOAD_URL=$(printf '%s' "$RELEASE_JSON" | jq -r ".assets[] | select(.name | contains(\"${PLATFORM}\")) | select(.name | endswith(\".tar.gz\")) | .browser_download_url") && \
+    if [ -z "$VERSION" ] || [ "$VERSION" = "null" ]; then echo "ERROR: could not determine latest dnscrypt-proxy version from GitHub API" >&2 && exit 1; fi && \
+    if [ -z "$DOWNLOAD_URL" ] || [ "$DOWNLOAD_URL" = "null" ]; then echo "ERROR: no release asset found for platform ${PLATFORM}" >&2 && exit 1; fi && \
     echo "Downloading dnscrypt-proxy ${VERSION} for ${PLATFORM}..." && \
-    curl -sL -o dnscrypt-proxy.tar.gz "$DOWNLOAD_URL" && \
-    curl -sL -o dnscrypt-proxy.tar.gz.minisig "${DOWNLOAD_URL}.minisig" && \
+    curl -fsSL --retry 3 --retry-delay 2 -o dnscrypt-proxy.tar.gz "$DOWNLOAD_URL" && \
+    curl -fsSL --retry 3 --retry-delay 2 -o dnscrypt-proxy.tar.gz.minisig "${DOWNLOAD_URL}.minisig" && \
     echo "$VERSION" > /tmp/version
 
 # Verify cryptographic signature
@@ -82,7 +92,7 @@ WORKDIR /opt/dnscrypt-proxy
 
 # Copy binary and version from builder
 COPY --from=builder --chown=dnscrypt:dnscrypt /build/dnscrypt-proxy ./
-COPY --from=builder /tmp/version ./version
+COPY --from=builder --chown=dnscrypt:dnscrypt /tmp/version ./version
 
 # Health check for container orchestration
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
